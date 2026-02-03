@@ -1,56 +1,44 @@
+import express from "express";
+import { PrismaClient } from "@prisma/client";
 
-
-import express from 'express';
-import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
-
 const app = express();
-const port = 3000;  
-
-
 
 app.use(express.json());
 
- 
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
 
+app.post("/adduser", async (req, res) => {
+  try {
+    const data = req.body;
 
-app.get('/', (req, res) => {
-  res.send('Hello World!');
-} 
-);  
-
-
-
-export const adduser = async (req, res) => {
-    
-    const  data = req.body;
-    res.send({message: "User added successfully", data: data});
-
-    const  user = await prisma.user.create({
+    const user = await prisma.user.create({
       data: {
-            name: data.name,
-            email: data.email,
-        }
-    }); 
+        name: data.name,
+        email: data.email,
+      },
+    });
 
-    res.status(201).json(user);
-    console.log(user);
-}
+    res.status(201).json({
+      message: "User added successfully",
+      user,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
 
-const getUsers = async (req, res) => {
+
+app.get("/users", async (req, res) => {
+  try {
     const users = await prisma.user.findMany();
-    res.status(200).json(users);  
-} 
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch users" });
+  }
+});
 
-
-app.get('/users', getUsers);
-app.post('/adduser', adduser);
-
-
-app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`);
-}
-); 
-
-export default app;
-
+export default app; 
