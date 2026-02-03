@@ -1,7 +1,7 @@
-import express from "express";
-import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
+import express from "express";
+import { prisma } from "../lib/prisma.js";
+
 const app = express();
 
 app.use(express.json());
@@ -12,13 +12,10 @@ app.get("/", (req, res) => {
 
 app.post("/adduser", async (req, res) => {
   try {
-    const data = req.body;
+    const { name, email } = req.body;
 
     const user = await prisma.user.create({
-      data: {
-        name: data.name,
-        email: data.email,
-      },
+      data: { name, email },
     });
 
     res.status(201).json({
@@ -26,19 +23,28 @@ app.post("/adduser", async (req, res) => {
       user,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Something went wrong" });
+    console.error("ADD USER ERROR:", error);
+    res.status(500).json({ error: error.message });
   }
 });
-
 
 app.get("/users", async (req, res) => {
   try {
     const users = await prisma.user.findMany();
     res.json(users);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch users" });
+    console.error("GET USERS ERROR:", error);
+    res.status(500).json({ error: error.message });
   }
 });
 
-export default app; 
+
+
+
+// app.listen(3000, () => {
+//   console.log("Server is running on http://localhost:3000");
+// });
+
+
+
+export default app;
